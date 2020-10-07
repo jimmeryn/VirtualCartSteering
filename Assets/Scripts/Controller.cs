@@ -15,7 +15,7 @@ public class Controller : MonoBehaviour {
   }
 
   void OnCollisionEnter(Collision collision) {
-    if (collision.collider.tag == "Obstacle" || collision.collider.tag == "Target") {
+    if (collision.collider.tag == "Obstacle" || collision.collider.tag == "Wall" || collision.collider.tag == "Target") {
       enabled = false;
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
