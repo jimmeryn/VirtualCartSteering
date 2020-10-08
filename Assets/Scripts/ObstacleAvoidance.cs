@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class ObstacleAvoidance : MonoBehaviour {
   [Range(0, 360)]
@@ -10,6 +11,8 @@ public class ObstacleAvoidance : MonoBehaviour {
   private GameObject target;
 
   private float range = 10;
+
+  private List<RaycastInfo> raycastList = new List<RaycastInfo>();
 
   private void Start() {
     target = GameObject.FindWithTag("Target");
@@ -35,10 +38,12 @@ public class ObstacleAvoidance : MonoBehaviour {
   void CastRay(Vector3 direction) {
     RaycastHit hit;
     if (Physics.Raycast(transform.position, direction, out hit, range)) {
-      if (hit.collider.tag != "Obstacle") {
-        Debug.DrawLine(transform.position, hit.point, Color.green);
-      } else {
+      if (hit.collider.tag.Equals(Tags.Obstacle)) {
         Debug.DrawLine(transform.position, hit.point, Color.red);
+      } else if (hit.collider.tag.Equals(Tags.Wall)) {
+        Debug.DrawLine(transform.position, hit.point, Color.yellow);
+      } else {
+        Debug.DrawLine(transform.position, hit.point, Color.green);
       }
     } else {
       Debug.DrawLine(transform.position, transform.position + direction, Color.green);

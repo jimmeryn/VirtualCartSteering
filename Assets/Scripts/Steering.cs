@@ -29,13 +29,18 @@ public class Steering : MonoBehaviour {
     RaycastHit hit;
     if (Physics.BoxCast(origin, cubeSize / 2, direction, out hit, transform.rotation)) {
       hitDistance = hit.distance;
-      if (hit.collider.tag == "Target" || maxHitDistance < 5.0f) {
-        velocity = new Vector3(target.transform.position.x - transform.position.x, 0, target.transform.position.z - transform.position.z).normalized * speed;
-      } else {
+      if (hit.collider.tag.Equals(Tags.Target) || maxHitDistance < 5.0f) {
+        //velocity = new Vector3(target.transform.position.x - transform.position.x, 0, target.transform.position.z - transform.position.z).normalized * speed;
+        // Use transform.position ... MoveTowards here?
+      } 
+      //else {
         // Using ObstacleAvoidance in this case
-        velocity = Vector3.zero;
-      }
-      rigidBody.MovePosition(rigidBody.position + velocity * Time.fixedDeltaTime);
+        // velocity = Vector3.zero;
+      //}
+      transform.position = Vector3.MoveTowards(transform.position, hit.point, Time.deltaTime * speed);
+      // Dont know if using transform.position is good idea so i left rigidBody.
+      // Delete this if no longer needed
+      //rigidBody.MovePosition(rigidBody.position + velocity * Time.fixedDeltaTime);
     }
   }
 
