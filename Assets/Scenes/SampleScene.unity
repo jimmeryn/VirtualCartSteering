@@ -471,7 +471,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   groundPlane: {fileID: 2051043470}
-  randomValue: 0.7
+  randomValue: 0.9
   obsticle: {fileID: 705736477744084376, guid: ebce48ef105c3264081b98ac04d01910, type: 3}
   player: {fileID: 3293914979325015647, guid: f1b2bd8111bcdee45aaff757827ea97e, type: 3}
   playerPosition: {x: -40, y: 1, z: -40}
