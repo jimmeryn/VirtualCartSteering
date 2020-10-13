@@ -13,6 +13,8 @@ public class ObstacleAvoidance : MonoBehaviour {
   private float range = 10;
 
   private List<RaycastInfo> raycastList = new List<RaycastInfo>();
+  
+  private Graph graph;
 
   private void Start() {
     target = GameObject.FindWithTag(Tags.Target);
@@ -20,6 +22,7 @@ public class ObstacleAvoidance : MonoBehaviour {
 
   void FixedUpdate() {
     range = CalculateRangeToTarget(transform.position, target.transform.position);
+    graph = new Graph(raycastList, transform.position, target.transform.position);
     for (float i = 0; i < viewAngle; i += step) {
       float angle = (-viewAngle / 2) + i;
       Vector3 direction = DirectionFromAngle(angle) * range;
