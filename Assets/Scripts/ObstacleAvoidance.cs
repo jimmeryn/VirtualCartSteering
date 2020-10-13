@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class ObstacleAvoidance : MonoBehaviour {
@@ -22,11 +22,42 @@ public class ObstacleAvoidance : MonoBehaviour {
 
   void FixedUpdate() {
     range = CalculateRangeToTarget(transform.position, target.transform.position);
+    CastAllRays();
     graph = new Graph(raycastList, transform.position, target.transform.position);
+    DrawDebugLines();
+  }
+
+  void CastAllRays() {
+    raycastList.Clear();
     for (float i = 0; i < viewAngle; i += step) {
       float angle = (-viewAngle / 2) + i;
       Vector3 direction = DirectionFromAngle(angle) * range;
-      CastRay(direction);
+      CastRay(direction, angle);
+    }
+  }
+
+  void CastRay(Vector3 direction, float angle) {
+    RaycastHit hit;
+    if (Physics.Raycast(transform.position, direction, out hit, range)) {
+      if (hit.collider.tag.Equals(Tags.Obstacle)) {
+        raycastList.Add(new RaycastInfo(true, hit.point, hit.distance, angle));
+      } else if (hit.collider.tag.Equals(Tags.Wall)) {
+        raycastList.Add(new RaycastInfo(true, hit.point, hit.distance, angle));
+      } else {
+        raycastList.Add(new RaycastInfo(false, hit.point, hit.distance, angle));
+      }
+    } else {
+      raycastList.Add(new RaycastInfo(false, transform.position + direction, range, angle));
+    }
+  }
+
+  void DrawDebugLines() {
+    foreach(RaycastInfo rayInfo in raycastList) {
+      if (rayInfo.hit) {
+        Debug.DrawLine(transform.position, rayInfo.point, Color.red);
+      } else {
+        Debug.DrawLine(transform.position, rayInfo.point, Color.green);
+      }
     }
   }
 
@@ -36,20 +67,5 @@ public class ObstacleAvoidance : MonoBehaviour {
 
   float CalculateRangeToTarget(Vector3 playerPosition, Vector3 targetPosition) {
     return (targetPosition - playerPosition).magnitude;
-  }
-
-  void CastRay(Vector3 direction) {
-    RaycastHit hit;
-    if (Physics.Raycast(transform.position, direction, out hit, range)) {
-      if (hit.collider.tag.Equals(Tags.Obstacle)) {
-        Debug.DrawLine(transform.position, hit.point, Color.red);
-      } else if (hit.collider.tag.Equals(Tags.Wall)) {
-        Debug.DrawLine(transform.position, hit.point, Color.yellow);
-      } else {
-        Debug.DrawLine(transform.position, hit.point, Color.green);
-      }
-    } else {
-      Debug.DrawLine(transform.position, transform.position + direction, Color.green);
-    }
   }
 }
