@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ObstacleAvoidance : MonoBehaviour {
@@ -15,7 +15,7 @@ public class ObstacleAvoidance : MonoBehaviour {
   private List<RaycastInfo> raycastList = new List<RaycastInfo>();
 
   private void Start() {
-    target = GameObject.FindWithTag("Target");
+    target = GameObject.FindWithTag(Tags.Target);
   }
 
   void FixedUpdate() {

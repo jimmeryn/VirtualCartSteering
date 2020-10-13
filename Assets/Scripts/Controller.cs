@@ -15,7 +15,12 @@ public class Controller : MonoBehaviour {
   }
 
   void OnCollisionEnter(Collision collision) {
-    if (collision.collider.tag == "Obstacle" || collision.collider.tag == "Wall" || collision.collider.tag == "Target") {
+    var tag = collision.collider.tag;
+    if (
+      tag.Equals(Tags.Obstacle) || 
+      tag.Equals(Tags.Wall) || 
+      tag.Equals(Tags.Target)
+      ) {
       enabled = false;
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }

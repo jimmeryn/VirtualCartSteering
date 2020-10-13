@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class Steering : MonoBehaviour {
   private GameObject target;
@@ -12,7 +12,7 @@ public class Steering : MonoBehaviour {
   private Vector3 cubeSize;
 
   private void Start() {
-    target = GameObject.FindWithTag("Target");
+    target = GameObject.FindWithTag(Tags.Target);
     rigidBody = GetComponent<Rigidbody>();
     maxHitDistance = CalculateRangeToTarget(transform.position, target.transform.position);
     hitDistance = maxHitDistance;
