@@ -28,8 +28,30 @@ public class Steering : MonoBehaviour {
       hitDistance = hit.distance;
       if (hit.collider.tag.Equals(Tags.Target) || maxHitDistance < 5.0f) {
         transform.position = Vector3.MoveTowards(transform.position, hit.point, Time.deltaTime * speed);
+  private void MeshCreator() {
+    int vertexCount = obstacleAvoidance.raycastList.Count + 1;
+    Vector3[] vertices = new Vector3[vertexCount];
+    int[] triangles = new int[(vertexCount - 1) * 3];
+    vertices[0] = Vector3.zero;
+    for (int i = 0; i < vertexCount - 1; i++) {
+      vertices[i + 1] = transform.InverseTransformPoint(obstacleAvoidance.raycastList[i].point + Vector3.forward * 0.2f);
+      if (i <= vertexCount - 2) {
+        if (i == vertexCount - 2) {
+          // Connect to make triangles for last piece of 360
+          triangles[i * 3] = 0;
+          triangles[i * 3 + 1] = i + 1;
+          triangles[i * 3 + 2] = 1;
+        } else {
+          triangles[i * 3] = 0;
+          triangles[i * 3 + 1] = i + 1;
+          triangles[i * 3 + 2] = i + 2;
+        }
       }
     }
+    viewMesh.Clear();
+    viewMesh.vertices = vertices;
+    viewMesh.triangles = triangles;
+    viewMesh.RecalculateNormals();
   }
 
   // DEBUG only
