@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class Steering : MonoBehaviour {
   private GameObject target;
@@ -32,13 +32,15 @@ public class Steering : MonoBehaviour {
     }
   }
 
+  // DEBUG only
   private void OnDrawGizmos() {
     Gizmos.color = Color.blue;
     Gizmos.DrawLine(origin, origin + direction * hitDistance);
     Gizmos.DrawWireCube(origin + direction * hitDistance, cubeSize);
-  }
-
-  float CalculateRangeToTarget(Vector3 playerPosition, Vector3 targetPosition) {
-    return (targetPosition - playerPosition).magnitude;
+    if (obstacleAvoidance != null && obstacleAvoidance.raycastList != null) {
+      obstacleAvoidance.OnDrawGizmos();
+    }
+    Gizmos.color = Color.green;
+    Gizmos.DrawSphere(localTarget, 3f);
   }
 }
