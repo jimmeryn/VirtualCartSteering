@@ -1,3 +1,4 @@
+﻿using System.Collections;
 using UnityEngine;
 
 public class Steering : MonoBehaviour {
@@ -8,26 +9,72 @@ public class Steering : MonoBehaviour {
   private Vector3 origin;
   private Vector3 direction;
   private Vector3 cubeSize;
+  private ObstacleAvoidance obstacleAvoidance;
+
+  public MeshFilter viewMeshFilter;
+  private Mesh viewMesh;
+
+  private Vector3 localTarget;
+  private Vector3 oldTarget;
+
 
   private void Start() {
+    viewMesh = new Mesh();
+    viewMesh.name = "View Mesh";
+    viewMeshFilter.mesh = viewMesh;
     target = GameObject.FindWithTag(Tags.Target);
-    maxHitDistance = CalculateRangeToTarget(transform.position, target.transform.position);
+    maxHitDistance = Functions.CalculateLength(transform.position, target.transform.position);
     hitDistance = maxHitDistance;
     cubeSize = transform.localScale;
+    obstacleAvoidance = new ObstacleAvoidance(transform, target);
+
+    //StartCoroutine("AlgorithmWithDelay", 0.3f);
   }
 
-  private void Update() {
+  IEnumerator AlgorithmWithDelay(float delay) {
+    while (true) {
+      yield return new WaitForSeconds(delay);
+      Algorithm();
+    }
+  }
+
+  void Algorithm() {
     origin = transform.position;
     direction = (target.transform.position - transform.position).normalized;
     maxHitDistance = (transform.position - target.transform.position).magnitude;
-  }
 
-  private void FixedUpdate() {
+    obstacleAvoidance.Raycasting();
     RaycastHit hit;
     if (Physics.BoxCast(origin, cubeSize / 2, direction, out hit, transform.rotation)) {
       hitDistance = hit.distance;
-      if (hit.collider.tag.Equals(Tags.Target) || maxHitDistance < 5.0f) {
+      if (hit.collider.tag.Equals(Tags.Target) ||
+        !obstacleAvoidance.raycastList.Exists(ray => ray.hit)) {
         transform.position = Vector3.MoveTowards(transform.position, hit.point, Time.deltaTime * speed);
+      } else {
+        localTarget = obstacleAvoidance.FindLocalTarget();
+        if (localTarget == transform.position) {
+          transform.position = Vector3.MoveTowards(transform.position, oldTarget, Time.deltaTime * speed);
+        } else {
+          if (localTarget.magnitude > 2) {
+            transform.Translate(localTarget * Time.deltaTime * speed / 5);
+          } else {
+            transform.Translate(oldTarget * Time.deltaTime * speed / 5);
+          }
+          oldTarget = localTarget;
+          transform.Translate(localTarget * Time.deltaTime * speed / 5);
+        }
+      }
+    }
+  }
+  
+
+  private void LateUpdate() {
+    // DEBUG: in Prod use Coroutine for better performance
+    Algorithm();
+    // NOTE: Add shaders to materials for this to be visiable.
+    //MeshCreator();
+  }
+
   private void MeshCreator() {
     int vertexCount = obstacleAvoidance.raycastList.Count + 1;
     Vector3[] vertices = new Vector3[vertexCount];
