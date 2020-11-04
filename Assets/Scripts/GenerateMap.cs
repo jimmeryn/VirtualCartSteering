@@ -8,7 +8,10 @@ public class GenerateMap : MonoBehaviour {
   [Range(0, 1)]
   public float randomValue = 0.7f;
 
-  public GameObject obsticle;
+  [Range(0.4f, 1)]
+  public float obstacleSize = 1;
+
+  public GameObject obstacle;
 
   public GameObject player;
   public Vector3 playerPosition = new Vector3(-40f, 1f, -40f);
@@ -35,9 +38,15 @@ public class GenerateMap : MonoBehaviour {
         if (Random.value > randomValue) {
           pos = new Vector3(x - width / 2f, 2f, y - height / 2f);
           if (pos.x != targetPosition.x && pos.y != targetPosition.y && pos.x != playerPosition.x && pos.y != playerPosition.y) {
-            Instantiate(obsticle, pos, Quaternion.identity, transform);
+            Instantiate(obstacle, pos, Quaternion.identity, transform);
           }
         }
+      }
+    }
+    if (obstacleSize != 1) {
+      var Obstacles = GameObject.FindGameObjectsWithTag(Tags.Obstacle);
+      foreach (var obstacle in Obstacles) {
+        obstacle.transform.localScale *= obstacleSize;
       }
     }
   }
