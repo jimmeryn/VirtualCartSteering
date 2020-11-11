@@ -14,10 +14,10 @@ public class GenerateMap : MonoBehaviour {
   public GameObject obstacle;
 
   public GameObject player;
-  public Vector3 playerPosition = new Vector3(-40f, 1f, -40f);
+  Vector3 playerPosition = new Vector3(-150f, 1f, -150f);
 
   public GameObject target;
-  public Vector3 targetPosition = new Vector3(40f, 0.1f, 40f);
+  Vector3 targetPosition = new Vector3(150f, 0.1f, 150f);
 
   [HideInInspector]
   public bool created = false;
