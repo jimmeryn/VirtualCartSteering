@@ -419,9 +419,9 @@ MonoBehaviour:
   obstacleSize: 1
   obstacle: {fileID: 705736477744084376, guid: ebce48ef105c3264081b98ac04d01910, type: 3}
   player: {fileID: 3293914979325015647, guid: f1b2bd8111bcdee45aaff757827ea97e, type: 3}
-  playerPosition: {x: -40, y: 1, z: -40}
+  playerPosition: {x: -80, y: 1, z: -80}
   target: {fileID: 3594656633664636442, guid: 666151f0b077e8a439138fb6264db620, type: 3}
-  targetPosition: {x: 40, y: 0.1, z: 40}
+  targetPosition: {x: 100, y: 0.1, z: 100}
   created: 0
 --- !u!4 &1521852607
 Transform:
