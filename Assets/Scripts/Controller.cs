@@ -14,6 +14,10 @@ public class Controller : MonoBehaviour {
     velocity = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized * speed;
   }
 
+  void FixedUpdate() {
+    rigidBody.MovePosition(rigidBody.position + velocity * Time.fixedDeltaTime);
+  }
+
   void OnCollisionEnter(Collision collision) {
     var tag = collision.collider.tag;
     if (
@@ -26,7 +30,4 @@ public class Controller : MonoBehaviour {
     }
   }
 
-  void FixedUpdate() {
-    rigidBody.MovePosition(rigidBody.position + velocity * Time.fixedDeltaTime);
-  }
 }
