@@ -1,72 +1,65 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Steering : MonoBehaviour {
-  private const float speed = 5.0f;
-  private GameObject target;
+  private const float speed = 10.0f;
+  private const float toleranceValue = 4f;
+  private const float safetyRadius = 4f;
+
+  private float distance;
+  private Vector3 targetPosition;
   private Vector3 direction;
   private Raycasting raycasting;
   public List<Vector3> trajectory = new List<Vector3>();
-  public List<Vector3> T = new List<Vector3>();
-  public List<Vector3> Tv = new List<Vector3>();
-  const float toleranceValue = 5f;
-  const float safetyRadius = 6f;
-  const float defaultDistance = 30f;
-  float distance;
+  private readonly List<Vector3> T = new List<Vector3>();
+  //private List<Vector3> Tv = new List<Vector3>();
+  private Vector3 startPosition;
   Vector3 localTarget;
 
   public MeshFilter viewMeshFilter;
   private Mesh viewMesh;
+
   // DEBUG
-  public List<Vector3> drawingList = new List<Vector3>();
+  private readonly List<Vector3> drawingList = new List<Vector3>();
 
 
   private void Start() {
-    viewMesh = new Mesh();
-    viewMesh.name = "View Mesh";
+    viewMesh = new Mesh {
+      name = "View Mesh"
+    };
     viewMeshFilter.mesh = viewMesh;
 
-    target = GameObject.FindWithTag(Tags.Target);
+    targetPosition = GameObject.FindWithTag(Tags.Target).transform.position;
+    startPosition = transform.position;
     raycasting = new Raycasting(transform);
-    distance = defaultDistance;
-    trajectory.Add(transform.position);
-    //StartCoroutine("AlgorithmWithDelay", 0.3f);
+    distance = Functions.VectorLength(startPosition, targetPosition);
+    trajectory.Add(startPosition);
+    AStar.Init(startPosition, targetPosition);
   }
 
-  IEnumerator AlgorithmWithDelay(float delay) {
-    while (true) {
-      yield return new WaitForSeconds(delay);
-      // TODO: optimalization... multithreading?
-      Algorithm();
-    }
-  }
-
-  private void Update() {
-    // DEBUG: in Prod use Coroutine for better performance
+  private void LateUpdate() {
     Algorithm();
-    // NOTE: Add shaders to materials for this to be visiable.
-    //MeshCreator();
+    MeshCreator();
   }
 
   void Algorithm() {
+    trajectory.Add(transform.position);
+    distance = Functions.VectorLength(transform.position, targetPosition);
     // 2.1. Distance check
     raycasting.DistanceCheck(distance);
     //2.2.Check if goal is visible
-  RaycastHit hit;
-    direction = (target.transform.position - transform.position).normalized;
+    direction = (targetPosition - transform.position).normalized;
     if (
-      Physics.BoxCast(transform.position, transform.localScale / 2, direction, out hit, transform.rotation) &&
+      Physics.BoxCast(transform.position, transform.localScale / 2, direction, out RaycastHit hit, transform.rotation) &&
       hit.collider.tag.Equals(Tags.Target)
     ) {
       Departure(hit.point);
     } else {
       if (raycasting.minRaysList.Count >= 1 &&
           Functions.VectorLength(transform.position, raycasting.minRaysList[0].point) <= safetyRadius) {
-        Debug.Log("Safety");
         localTarget = transform.TransformPoint(raycasting.minRaysList[0].point);
         MoveAway(raycasting.minRaysList[0].point);
-      }  else
+      } else
       if (raycasting.minRaysList.Count >= 3) {
         // 3. Compare
         Compare(raycasting.minRaysList);
@@ -80,14 +73,20 @@ public class Steering : MonoBehaviour {
   private void Compare(List<RaycastInfo> minRays) {
     // 3.1. Out of ME
     if (Functions.VectorLength(minRays[0].point, minRays[1].point) > toleranceValue) {
-      Correction(transform.position, minRays[0].point, minRays[1].point);
       Debug.Log("3.1");
+      Correction(transform.position, minRays[0].point, minRays[1].point);
     } else
     // 3.3. Robot is located on a medial axis vertex - maintains max distance from 3 obstacles
     if (Functions.VectorLength(minRays[0].point, minRays[1].point) <= toleranceValue &&
         Functions.VectorLength(minRays[0].point, minRays[2].point) <= toleranceValue) {
       Debug.Log("3.3");
       if (T.Contains(transform.position)) {
+        // DEBUG
+        trajectory.Add(transform.position);
+        localTarget = CalculateLocalTarget(transform.position, minRays[0].point, minRays[1].point, minRays[2].point);
+        Projection(localTarget);
+        // DEBUG END
+
         //LoopHandle();
       } else {
         trajectory.Add(transform.position);
@@ -104,6 +103,7 @@ public class Steering : MonoBehaviour {
         //Backtracking();
         MoveAway(minRays[0].point);
       } else {
+        // ERROR HERE!!!!!!!!!
         Debug.Log("follow edge");
         trajectory.Add(transform.position);
         localTarget = CalculateLocalTarget(transform.position, minRays[0].point, minRays[1].point);
@@ -133,24 +133,21 @@ public class Steering : MonoBehaviour {
     transform.position = Vector3.MoveTowards(transform.position, new Vector3(target.x, 1, target.z), Time.deltaTime * speed);
     // NOTE: use transform.position = Vector3.MoveTowards or transfrorm.translate
     //transform.Translate(target * Time.deltaTime * speed);
-    distance = defaultDistance;
   }
 
   private void MoveAway(Vector3 obstacle) {
     transform.position = Vector3.MoveTowards(transform.position, new Vector3(obstacle.x, 1, obstacle.z), -speed * Time.deltaTime);
-    distance = defaultDistance;
   }
 
 
 
   private void Correction(Vector3 currentPosition, Vector3 p1, Vector3 p2) {
-    // TODO/DEBUG: Jakimś sposobem correction uznaje czasem, że aby najlepiej uniknąć przeszkody będzie w nią przywalić...
     var pm1 = p1 - currentPosition;
     var pm2 = p2 - currentPosition;
     var corectionStepLength = (pm2.magnitude - pm1.magnitude) / 2;
-    localTarget = new Vector3(pm1.x, 1, pm1.y).normalized * corectionStepLength;
-    MoveAway(new Vector3(pm1.x, 1, pm1.y).normalized * corectionStepLength);
-    //T.Add(currentPosition, J(x));
+    localTarget = new Vector3(-pm1.x, 1, -pm1.y).normalized * corectionStepLength;
+    MoveAway(new Vector3(-pm1.x, 1, -pm1.y).normalized * corectionStepLength);
+    //T.Add(transform.position, J(x));
     T.Add(transform.position);
   }
 
@@ -165,11 +162,10 @@ public class Steering : MonoBehaviour {
     Vector3 pm2 = p2 - position;
     Vector3 v1 = pm1 + pm2;
     Vector3 v2 = -v1;
-    //Debug.LogWarning(pm1 + " " + pm2 + " " + v1 + " " + v2);
     drawingList.Clear();
     drawingList.Add(v1.normalized * pm1.magnitude);
     drawingList.Add(v2.normalized * pm1.magnitude);
-    Vector3 node = Functions.CalculateBestNode(transform.position, target.transform.position, new Vector3[] { v1, v2 });
+    Vector3 node = AStar.CalculateBestNode(transform.position, new Vector3[] { v1, v2 });
     return node.normalized * pm1.magnitude;
   }
 
@@ -184,17 +180,17 @@ public class Steering : MonoBehaviour {
     drawingList.Add(v1.normalized * pm1.magnitude);
     drawingList.Add(v2.normalized * pm1.magnitude);
     drawingList.Add(v3.normalized * pm1.magnitude);
-    Vector3 node = Functions.CalculateBestNode(transform.position, target.transform.position, new Vector3[] { v1, v2, v3 });
+    Vector3 node = AStar.CalculateBestNode(transform.position, new Vector3[] { v1, v2, v3 });
     return node.normalized * pm1.magnitude;
   }
 
   private void MeshCreator() {
-    int vertexCount = raycasting.raysList.Count + 1;
+    int vertexCount = raycasting.raysMeshList.Count + 1;
     Vector3[] vertices = new Vector3[vertexCount];
     int[] triangles = new int[(vertexCount - 1) * 3];
     vertices[0] = Vector3.zero;
     for (int i = 0; i < vertexCount - 1; i++) {
-      vertices[i + 1] = transform.InverseTransformPoint(raycasting.raysList[i].point + Vector3.forward * 0.2f);
+      vertices[i + 1] = transform.InverseTransformPoint(raycasting.raysMeshList[i]);
       if (i <= vertexCount - 2) {
         if (i == vertexCount - 2) {
           // Connect to make triangles for last piece of 360
@@ -215,33 +211,33 @@ public class Steering : MonoBehaviour {
   }
 
   private void OnDrawGizmos() {
-    Gizmos.color = Color.white;
+    // Drawing SAFETY CIRCLE
+    Gizmos.color = Color.red;
     Gizmos.DrawWireSphere(transform.position, safetyRadius);
-    Gizmos.DrawWireSphere(transform.position, distance);
-    if (raycasting.minRaysList != null && raycasting.minRaysList.Count > 0) {
-      Gizmos.DrawWireSphere(transform.position, raycasting.minRaysList[0].distance);
-
-      Gizmos.color = Color.gray;
-      if (raycasting.minRaysList.Count > 0)
-        Gizmos.DrawLine(transform.position, raycasting.minRaysList[0].point);
-      if (raycasting.minRaysList.Count > 1)
-        Gizmos.DrawLine(transform.position, raycasting.minRaysList[1].point);
-      if (raycasting.minRaysList.Count > 2)
-        Gizmos.DrawLine(transform.position, raycasting.minRaysList[2].point);
-    }
-
-
+    
+    // Drawing MAX DISTANCE CIRCLE
+    //Gizmos.DrawWireSphere(transform.position, distance);
+    
+    // Drawing DEBUG DRAWING LIST
     Gizmos.color = Color.red;
     foreach (var d in drawingList) {
       Gizmos.DrawSphere(transform.TransformPoint(d), 1.5f);
     }
 
+    // Drawing LOCAL TARGET
     Gizmos.color = Color.yellow;
     Gizmos.DrawSphere(transform.TransformPoint(localTarget), 1f);
-    Gizmos.color = Color.green;
-    if (trajectory.Count > 1) {
-      for (var i = 1; i < trajectory.Count - 1; i++) {
-        Gizmos.DrawLine(trajectory[i - 1], trajectory[i]);
+
+    if (raycasting.minRaysList != null && raycasting.minRaysList.Count > 0) {
+      // Drawing CLOSEST RAY CIRCLE
+      //Gizmos.DrawWireSphere(transform.position, raycasting.minRaysList[0].distance);
+
+      // Drawing N CLOSEST RAYS
+      int N = 3;
+      Gizmos.color = Color.gray;
+      for (int i = 0; i < N; i++) {
+        if (raycasting.minRaysList.Count > i)
+          Gizmos.DrawLine(transform.position, raycasting.minRaysList[i].point);
       }
     }
   }
