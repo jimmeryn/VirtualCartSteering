@@ -6,18 +6,18 @@ public class GenerateMap : MonoBehaviour {
   private int height = 1;
 
   [Range(0, 1)]
-  public float randomValue = 0.7f;
+  public float openSpaceValue = 0.7f;
 
-  [Range(0.4f, 1)]
-  public float obstacleSize = 1;
+  [Range(0.4f, 1.5f)]
+  public float obstacleSizeMultiplayer = 1;
 
   public GameObject obstacle;
 
   public GameObject player;
-  Vector3 playerPosition = new Vector3(-150f, 1f, -150f);
+  Vector3 playerPosition = new Vector3(-40f, 1f, -40f);
 
   public GameObject target;
-  Vector3 targetPosition = new Vector3(150f, 0.1f, 150f);
+  Vector3 targetPosition = new Vector3(40f, 0.1f, 40f);
 
   [HideInInspector]
   public bool created = false;
@@ -35,7 +35,7 @@ public class GenerateMap : MonoBehaviour {
     Vector3 pos;
     for (int x = 10; x < width; x += 10) {
       for (int y = 10; y < height; y += 10) {
-        if (Random.value > randomValue) {
+        if (Random.value > openSpaceValue) {
           pos = new Vector3(x - width / 2f, 2f, y - height / 2f);
           if (pos.x != targetPosition.x && pos.y != targetPosition.y && pos.x != playerPosition.x && pos.y != playerPosition.y) {
             Instantiate(obstacle, pos, Quaternion.identity, transform);
@@ -43,10 +43,10 @@ public class GenerateMap : MonoBehaviour {
         }
       }
     }
-    if (obstacleSize != 1) {
+    if (obstacleSizeMultiplayer != 1) {
       var Obstacles = GameObject.FindGameObjectsWithTag(Tags.Obstacle);
       foreach (var obstacle in Obstacles) {
-        obstacle.transform.localScale *= obstacleSize;
+        obstacle.transform.localScale *= obstacleSizeMultiplayer;
       }
     }
   }
