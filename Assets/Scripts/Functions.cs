@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class Functions
 {
@@ -14,18 +12,5 @@ public static class Functions
 
   public static float VectorLength(Vector3 v1, Vector3 v2) {
     return (v2 - v1).magnitude;
-  }
-
-
-  public static Vector3 CalculateBestNode(Vector3 currentPosition, Vector3 targetPosition, Vector3[] nodes) {
-      float[] fCostArray = new float[nodes.Length - 1];
-      for (int i = 0; i < nodes.Length - 1; i++) {
-      if (currentPosition != nodes[i]) {
-        fCostArray[i] = VectorLength(currentPosition, nodes[i]) + VectorLength(nodes[i], targetPosition);
-      } else {
-        fCostArray[i] = Mathf.Infinity;
-      }
-    }
-      return nodes[Array.IndexOf(fCostArray, fCostArray.Min())];
   }
 }
