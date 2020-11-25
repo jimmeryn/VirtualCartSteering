@@ -18,6 +18,7 @@ public class Raycasting {
 
   public void DistanceCheck(float _maxRange) {
     raysList.Clear();
+    minRaysList.Clear();
     raysMeshList.Clear();
     maxRange = _maxRange;
     RaycastInfo oldViewCast = new RaycastInfo();
