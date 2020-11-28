@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class Raycasting {
-  private const float step = 20;
+  private const float step = 5;
   private float maxRange = 30;
   private readonly float edgeDistanceThreshold = 3;
   private readonly float edgeResolveIterations = 3;
+  private readonly float distanceThresholdValue = 5;
   private readonly Transform transform;
   public List<RaycastInfo> raysList = new List<RaycastInfo>();
   public List<Vector3> raysMeshList = new List<Vector3>();
