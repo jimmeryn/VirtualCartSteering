@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Steering : MonoBehaviour {
   private const float speed = 10;
-  private const float toleranceValue = 3f;
-  private const float safetyRadius = 4f;
+  private const float toleranceValue = 1f;
+  private const float safetyRadius = 5f;
 
   private float distance;
+  private float minDistance = 30;
   private Vector3 targetPosition;
   private Vector3 direction;
   private Raycasting raycasting;
@@ -15,14 +16,15 @@ public class Steering : MonoBehaviour {
   //private List<Vector3> Tv = new List<Vector3>();
   private Vector3 startPosition;
   Vector3 localTarget;
+  private float angleTolerance = 10;
 
   public MeshFilter viewMeshFilter;
   private Mesh viewMesh;
 
+
   // DEBUG
   private readonly List<Vector3> drawingList = new List<Vector3>();
   bool DEBUG = true;
-  private float angleTolerance = 10;
 
 
   private void Start() {
