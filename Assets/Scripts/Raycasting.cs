@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -56,7 +56,8 @@ public class Raycasting {
       var next = i != raysList.Count - 1 ? raysList[i + 1] : raysList[0];
       var last = i != 0 ? raysList[i - 1] : raysList[raysList.Count - 1];
 
-      if (last.distance > current.distance && next.distance > current.distance) {
+      if (last.distance > current.distance && next.distance > current.distance ||
+        (Mathf.Abs(last.distance - current.distance) > distanceThresholdValue && current.distance < next.distance)) {
         newList.Add(current);
       }
     }
@@ -65,7 +66,7 @@ public class Raycasting {
 
   private RaycastInfo CastRay(Vector3 origin, Vector3 direction, float range, float angle) {
     RaycastHit hit;
-    if (Physics.Raycast(origin, direction, out hit, range)) {
+    if (Physics.Raycast(origin, direction, out hit, range) && !hit.collider.CompareTag(Tags.Target)) {
       return new RaycastInfo(true, hit.point, hit.distance, angle);
     } else {
       return new RaycastInfo(false, origin + direction, range, angle);
